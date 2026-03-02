@@ -29,9 +29,7 @@ local function spinAnimation()
 end
 
 term.clear()
-print("=== WHEEL OF FORTUNE ===")
-print("Enter nickname:")
-local player = io.read()
+local player = "Steve"
 
 -- перевірка оплати
 if not fs.exists("/wheel/paid_" .. player) then
