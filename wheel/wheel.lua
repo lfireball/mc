@@ -1,25 +1,9 @@
-local component = require("component")
-local event = require("event")
 local term = require("term")
-local internet = component.internet
 local fs = require("filesystem")
+local ser = require("serialization")
 
 local rewards = dofile("/wheel/rewards.lua")
 local config = dofile("/wheel/config.lua")
-
-local pendingPath = "/wheel/pending.lua"
-
--- utils
-local function loadPending()
-  if not fs.exists(pendingPath) then return {} end
-  return dofile(pendingPath)
-end
-
-local function savePending(data)
-  local f = io.open(pendingPath, "w")
-  f:write("return " .. require("serialization").serialize(data))
-  f:close()
-end
 
 local function weightedRandom()
   local sum = 0
@@ -32,50 +16,48 @@ local function weightedRandom()
   end
 end
 
-local function economyAdd(player, amount)
-  local data = string.format(
-    '{"player":"%s","amount":%d}',
-    player, amount
-  )
-  internet.request(config.economy_api, data)
-end
-
--- animation
 local function spinAnimation()
-  for i = 1, 20 do
+  local frames = { "|", "/", "-", "\\" }
+  for i = 1, 30 do
     term.clear()
-    print("Spinning" .. string.rep(".", i % 4))
-    os.sleep(0.15 + i * 0.02)
+    print("WHEEL OF FORTUNE")
+    print("")
+    print(" Spinning " .. frames[i % 4 + 1])
+    os.sleep(0.08 + i * 0.01)
   end
 end
 
--- main
 term.clear()
 print("=== WHEEL OF FORTUNE ===")
-print("Enter your nickname:")
-
+print("Enter nickname:")
 local player = io.read()
 
-print("Press ENTER to spin (cost " .. config.cost_per_spin .. " coins)")
-io.read()
+-- перевірка оплати
+if not fs.exists("/wheel/paid_" .. player) then
+  print("Payment not found!")
+  return
+end
+fs.remove("/wheel/paid_" .. player)
 
 spinAnimation()
 
 local reward = weightedRandom()
 term.clear()
-print("You won: " .. reward.name)
+print("YOU WON:")
+print(reward.name)
 
-if reward.type == "money" then
-  economyAdd(player, reward.amount)
-
-elseif reward.type == "item" then
-  local pending = loadPending()
+if reward.type == "item" then
+  local pending = dofile("/wheel/pending.lua")
   pending[player] = pending[player] or {}
   table.insert(pending[player], {
     item = reward.item,
     count = reward.count
   })
-  savePending(pending)
+
+  local f = io.open("/wheel/pending.lua", "w")
+  f:write("return " .. ser.serialize(pending))
+  f:close()
 end
 
-print("Reward processed!")
+print("")
+print("Go to Withdraw Terminal")
