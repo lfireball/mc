@@ -1,4 +1,3 @@
-print("Wheel loaded!")
 local term = require("term")
 local fs = require("filesystem")
 local ser = require("serialization")
