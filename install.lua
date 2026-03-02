@@ -2,7 +2,7 @@ local component = require("component")
 local internet = component.internet
 local fs = require("filesystem")
 
-local BASE_URL = "https://raw.githubusercontent.com/YOUR_GITHUB_NAME/wheel-of-fortune-oc/main/"
+local BASE_URL = "https://raw.githubusercontent.com/lfireball/mc/main/"
 
 local files = {
   "wheel/wheel.lua",
